@@ -14,13 +14,31 @@
 #define SUSP_FIRM           0x60
 
 //DNA Mode definitions
-#define DNA_RACE            0x31
-#define DNA_DYNAMIC         0x9
-#define DNA_NEUTERED        0x1//might have swapped with A mode
-#define DNA_AWFUL           0x11//might have swapped with N mode
+#define DNA_RACE                0x31
+#define DNA_DYNAMIC             0x9
+#define DNA_NEUTRAL             0x1//might have swapped with A mode
+#define DNA_ADVANCED_EFFICENCY  0x11//might have swapped with N mode
 
-#define SPI_CS_CAN          9
+#define CAN_5KBPS    1
+#define CAN_10KBPS   2
+#define CAN_20KBPS   3
+#define CAN_25KBPS   4
+#define CAN_31K25BPS 5
+#define CAN_33KBPS   6
+#define CAN_40KBPS   7
+#define CAN_50KBPS   8
+#define CAN_80KBPS   9
+#define CAN_83K3BPS  10
+#define CAN_95KBPS   11
+#define CAN_100KBPS  12
+#define CAN_125KBPS  13
+#define CAN_200KBPS  14
+#define CAN_250KBPS  15
+#define CAN_500KBPS  16
+#define CAN_666kbps  17
+#define CAN_1000KBPS 18
 
+#define SPI_CS_CAN  9
 MCP_CAN CAN(SPI_CS_CAN);     
 
 byte len = 0;
@@ -46,6 +64,7 @@ void print_can_buf(int id, unsigned char len) {
 void setup()
 {
   Serial.begin(115200);
+  int i = 0;
   while (CAN_OK != CAN.begin(CAN_500KBPS))
   {
     Serial.println("CAN BUS Shield init fail");
@@ -56,11 +75,11 @@ void setup()
   CAN.init_Mask(1, 0, 0x7ff);//did you RTFM?
 
   CAN.init_Filt(0, 0, TCESC_CONTROL);
-  CAN.init_Filt(1, 0, SUSPENSION_CONTROL);
+  // CAN.init_Filt(1, 0, SUSPENSION_CONTROL);
 }
 
 void handle_tcesc_control() {
-  if(tcesc_buf[1] != DNA_NEUTERED && tcesc_buf[1] != DNA_DYNAMIC && tcesc_buf[1] != DNA_AWFUL && tcesc_buf[1] != DNA_RACE)
+  if(tcesc_buf[1] != DNA_NEUTRAL && tcesc_buf[1] != DNA_DYNAMIC && tcesc_buf[1] != DNA_ADVANCED_EFFICENCY && tcesc_buf[1] != DNA_RACE)
     return;//sanity check, don't want to send random shit to module if buffer corrupt/incorrect
   if(tc_disable && tcesc_buf[1] != DNA_RACE)
     tcesc_buf[1] = DNA_RACE;//TCESC disable from Giulia QV in race mode
@@ -92,13 +111,22 @@ void loop()
       /*
        * let's detect real DNA mode change to/from race for QV cars and change to expected TC/ESC setting when that happens
        */
-      if(last_dna_mode == DNA_RACE && tcesc_buf[1] != DNA_RACE)
+      if (last_dna_mode == DNA_DYNAMIC && tcesc_buf[1] != DNA_DYNAMIC) {
+        Serial.println("TCESC enabled");
         tc_disable = 0;
-      else if(last_dna_mode != DNA_RACE && tcesc_buf[1] == DNA_RACE)
+      } else if (last_dna_mode != DNA_DYNAMIC && tcesc_buf[1] == DNA_DYNAMIC) {
+        Serial.println("TCESC disabled");
         tc_disable = 1;
+      }
+
+      Serial.println("Will set last DNA Mode: ");
+      Serial.println(tcesc_buf[1]);
       last_dna_mode = tcesc_buf[1];
     }
-    if(id == TCESC_CONTROL || id == SUSPENSION_CONTROL)
+    
+    //if (id == TCESC_CONTROL || id == SUSPENSION_CONTROL) {
+    if (id == TCESC_CONTROL) {
       handle_tcesc_control();//added extra check to deal with library/filter bug, don't spam the bus
+    }
   }
 }
