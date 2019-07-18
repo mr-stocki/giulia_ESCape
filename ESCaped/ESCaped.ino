@@ -92,6 +92,27 @@ void handle_tcesc_control() {
   CAN.sendMsgBuf(TCESC_CONTROL,0, 8, tcesc_buf);
 }
 
+void convertBufToStr(byte string) {
+  switch (string) {
+    case DNA_NEUTRAL : {
+      Serial.println("DNA_NEUTRAL");
+      break;
+    }
+    case DNA_ADVANCED_EFFICENCY : {
+      Serial.println("DNA_ADVANCED_EFFICENCY");
+      break;
+    }
+    case DNA_DYNAMIC : {
+      Serial.println("DNA_DYNAMIC");
+      break;
+    }
+    case DNA_RACE : {
+      Serial.println("DNA_RACE");
+      break;
+    }
+  }
+}
+
 
 void loop()
 {
@@ -107,7 +128,9 @@ void loop()
       memcpy(tcesc_buf, buf, 8);
       Serial.println("print buffer 1: ");   
       Serial.println(tcesc_buf[1]);   
-           
+
+      convertBufToStr(tcesc_buf[1]);
+      
       handle_tcesc_control();
     }
   }
