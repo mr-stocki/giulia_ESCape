@@ -82,11 +82,14 @@ void handle_tcesc_control() {
     Serial.println("RETURN - DO NTH.");
     Serial.println(tcesc_buf[1]);
     return;
-  } else if (tcesc_buf[1] == DNA_DYNAMIC) {
+  }
+
+  // switch - send RACE in case of DYNAMIC
+  if (tcesc_buf[1] == DNA_DYNAMIC) {
     Serial.println("buffer equals DNA_DYNAMIC, set to DNA_RACE");
     tcesc_buf[1] = DNA_RACE;
   }
-
+  
   Serial.println("SEND MESSAGE TO TCESC control!");
   Serial.println(tcesc_buf[1]);
   CAN.sendMsgBuf(TCESC_CONTROL,0, 8, tcesc_buf);
