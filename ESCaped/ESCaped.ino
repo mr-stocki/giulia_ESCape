@@ -105,7 +105,11 @@ void loop()
 
       convertBufToStr(tcesc_buf[1]);
       handle_tcesc_control();
+      Serial.println("last dna mode"); 
+      Serial.println(last_dna_mode); 
       last_dna_mode = tcesc_buf[1];
+      Serial.println("NEW last dna mode"); 
+      Serial.println(last_dna_mode); 
     }
   }
 }
