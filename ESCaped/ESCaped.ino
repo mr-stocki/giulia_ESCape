@@ -25,7 +25,7 @@ MCP_CAN CAN(SPI_CS_CAN);
 byte len = 0;
 byte buf[8] = {0};
 byte tcesc_buf[8] = {0};
-byte last_dna_mode = DNA_NEUTRAL;
+byte last_dna_mode = 0x9;
 
 void setup()
 {
@@ -97,10 +97,13 @@ void loop()
     Serial.println("Got id from buffer: ");
     Serial.println(id);
 
+    Serial.println(last_dna_mode);
+    Serial.println(tcesc_buf[1]);
+
     // check if dna mode changed and if it is a request for TCESC control
     if(id == TCESC_CONTROL && last_dna_mode != tcesc_buf[1]) {
       Serial.println("ID seems to be TCESC_CONTROL");
-      Serial.println("print buffer 1: ");   
+      Serial.println("print buffer 1 / DNA mode: ");   
       Serial.println(tcesc_buf[1]);   
 
       convertBufToStr(tcesc_buf[1]);
@@ -109,7 +112,7 @@ void loop()
       Serial.println(last_dna_mode); 
       last_dna_mode = tcesc_buf[1];
       Serial.println("NEW last dna mode"); 
-      Serial.println(last_dna_mode); 
+      Serial.println(tcesc_buf[1]); 
     }
   }
 }
