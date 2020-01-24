@@ -9,17 +9,20 @@
 #define SUSPENSION_CONTROL  0x1FC // 508
 
 //CAN-CH bus data definitions
-#define SUSP_SOFT           0x50
-#define SUSP_MID            0x40
-#define SUSP_FIRM           0x60
+#define SUSP_SOFT           0x50  // 80
+#define SUSP_MID            0x40  // 64
+#define SUSP_FIRM           0x60  // 96
 
 //DNA Mode definitions
-#define DNA_RACE                  0x31 // 49
-#define DNA_DYNAMIC               0x9 // 9
-#define DNA_NEUTRAL               0x1 // 1
-#define DNA_ADVANCED_EFFICENCY    0x11 // 17
+#define DNA_RACE                  0x31  // 49
+#define DNA_DYNAMIC               0x9   // 9
+#define DNA_NEUTRAL               0x1   // 1
+#define DNA_ADVANCED_EFFICENCY    0x11  // 17
 
-#define SPI_CS_CAN  9
+//dfrobot documentation: "D4 is Arduino SPI CS pin"
+#define SPI_CS_CAN  4
+
+
 MCPCAN CAN(SPI_CS_CAN);     
 
 byte len = 0;
@@ -30,16 +33,30 @@ byte last_dna_mode = 0x9;
 void setup()
 {
   Serial.begin(115200);
-  int i = 0;
-  while (CAN_OK != CAN.begin(CAN_500KBPS))
-  {
-    Serial.println("CAN BUS Shield init fail");
-    Serial.println(i++);
-  }
+  
+  // according to the docs: "This function should be called at first, initialize CAN-BUS MCU." ... ok ... 
+  CAN.init();
+
+  int beginSuccess = CAN_FAIL;
+  do {
+    Serial.println("starting...");
+    beginSuccess = CAN.begin(CAN_500KBPS);
+    Serial.print("result: ");
+    Serial.println(beginSuccess);
+    delay(100);
+  } while (beginSuccess != CAN_OK);
+
   Serial.println("CAN BUS Shield init ok!");
+  Serial.println("setting up masks and filters...");
+
+  // two mask-registers (0 and 1)
+  // mask defines which bits of the filter are to be checked
+  // 0x7ff  ->  ‭011111111111‬
   CAN.init_Mask(MCP_RXM0, 0, 0x7ff);
   CAN.init_Mask(MCP_RXM1, 0, 0x7ff);
 
+  // (up to) 5 filter-registers
+  // filter defines which message ids are accepted
   CAN.init_Filter(MCP_RXF0, 0, TCESC_CONTROL);
   CAN.init_Filter(MCP_RXF1, 0, SUSPENSION_CONTROL);
 }
