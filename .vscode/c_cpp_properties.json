@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:\\Program Files (x86)\\Arduino\\libraries\\Bridge\\src",
+                "C:\\Program Files (x86)\\Arduino\\**",
+                "C:\\Program Files (x86)\\Arduino\\tools\\**",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
+                "./lib/**"
+            ],
+            "forcedInclude": [
+                "C:\\Users\\Stefan\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.2\\cores\\arduino\\Arduino.h"
+            ],
+            "intelliSenseMode": "msvc-x64",
+            "browse": {
+                "path": [
+                    "C:\\Program Files (x86)\\Arduino\\libraries\\Bridge\\src",
+                    "C:\\Program Files (x86)\\Arduino\\**",
+                    "C:\\Program Files (x86)\\Arduino\\tools\\**",
+                    "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
+                    "./lib/**"
+                ]
+            }
+        }
+    ],
+    "version": 4
+}

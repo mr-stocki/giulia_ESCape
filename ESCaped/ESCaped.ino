@@ -1,4 +1,3 @@
-#include <SPI.h>
 #include <df_can.h>
 #include <df_candfs.h>
 #include <time.h>
@@ -37,8 +36,8 @@ void setup()
     Serial.println(i++);
   }
   Serial.println("CAN BUS Shield init ok!");
-  CAN.init_Mask(0, 0, 0x7ff);//did you add the delay(100) to the library per the readme?
-  CAN.init_Mask(1, 0, 0x7ff);//did you RTFM?
+  CAN.init_Mask(0, 0, 0x7ff);
+  CAN.init_Mask(1, 0, 0x7ff);
 
   CAN.init_Filter(0, 0, TCESC_CONTROL);
   CAN.init_Filter(1, 0, SUSPENSION_CONTROL);
