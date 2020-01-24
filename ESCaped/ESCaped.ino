@@ -1,6 +1,6 @@
-#include <mcp_can.h>
-#include <mcp_can_dfs.h>
 #include <SPI.h>
+#include <df_can.h>
+#include <df_candfs.h>
 #include <time.h>
 
 
@@ -20,7 +20,7 @@
 #define DNA_ADVANCED_EFFICENCY    0x11 // 17
 
 #define SPI_CS_CAN  9
-MCP_CAN CAN(SPI_CS_CAN);     
+MCPCAN CAN(SPI_CS_CAN);     
 
 byte len = 0;
 byte buf[8] = {0};
@@ -40,8 +40,8 @@ void setup()
   CAN.init_Mask(0, 0, 0x7ff);//did you add the delay(100) to the library per the readme?
   CAN.init_Mask(1, 0, 0x7ff);//did you RTFM?
 
-  CAN.init_Filt(0, 0, TCESC_CONTROL);
-  CAN.init_Filt(1, 0, SUSPENSION_CONTROL);
+  CAN.init_Filter(0, 0, TCESC_CONTROL);
+  CAN.init_Filter(1, 0, SUSPENSION_CONTROL);
 }
 
 void handle_tcesc_control() {
@@ -54,12 +54,6 @@ void handle_tcesc_control() {
     return;
   }
 
-  // switch - send RACE in case of DYNAMIC
-  if (tcesc_buf[1] == DNA_DYNAMIC) {
-    Serial.println("buffer equals DNA_DYNAMIC, set to DNA_RACE");
-    tcesc_buf[1] = DNA_RACE;
-  }
-  
   Serial.println("SEND MESSAGE TO TCESC control!");
   Serial.println(tcesc_buf[1]);
   CAN.sendMsgBuf(TCESC_CONTROL,0, 8, tcesc_buf);
@@ -85,7 +79,6 @@ void convertBufToStr(byte string) {
     }
   }
 }
-
 
 void loop()
 {
