@@ -37,11 +37,11 @@ void setup()
     Serial.println(i++);
   }
   Serial.println("CAN BUS Shield init ok!");
-  CAN.init_Mask(0, 0, 0x7ff);
-  CAN.init_Mask(1, 0, 0x7ff);
+  CAN.init_Mask(MCP_RXM0, 0, 0x7ff);
+  CAN.init_Mask(MCP_RXM1, 0, 0x7ff);
 
-  CAN.init_Filter(0, 0, TCESC_CONTROL);
-  CAN.init_Filter(1, 0, SUSPENSION_CONTROL);
+  CAN.init_Filter(MCP_RXF0, 0, TCESC_CONTROL);
+  CAN.init_Filter(MCP_RXF1, 0, SUSPENSION_CONTROL);
 }
 
 void handle_tcesc_control() {
