@@ -1,3 +1,4 @@
+#include <SPI.h>
 #include <df_can.h>
 #include <df_candfs.h>
 #include <time.h>
