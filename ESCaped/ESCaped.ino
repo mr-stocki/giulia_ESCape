@@ -49,7 +49,7 @@ void setup()
   Serial.println("CAN BUS Shield init ok!");
   Serial.println("setting up masks and filters...");
 
-  // two mask-registers (0 and 1)
+  // (up to) 2 mask-registers (0 and 1)
   // mask defines which bits of the filter are to be checked
   // 0x7ff  ->  ‭011111111111‬
   CAN.init_Mask(MCP_RXM0, 0, 0x7ff);
