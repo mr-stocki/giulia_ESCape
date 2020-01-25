@@ -79,7 +79,7 @@ void setup()
   {
     Serial.println("setting up masks and filters...");
     maskAndFilterSuccess = setupMasksAndFilters();
-  } while(maskAndFilterSuccess != MCP_OK);
+  } while (maskAndFilterSuccess != MCP_OK);
   Serial.println("mask and filter setup ok!");
 
   Serial.println("setup done.");
