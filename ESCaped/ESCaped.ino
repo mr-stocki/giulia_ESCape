@@ -2,35 +2,44 @@
 #include <df_candfs.h>
 #include <time.h>
 
-//CAN-CH bus ID definitions
-#define TCESC_CONTROL 0x384      // 900
-#define SUSPENSION_CONTROL 0x1FC // 508
+// CAN-CH bus ID definitions
+#define TCESC_CONTROL       0x384 // 900
+#define SUSPENSION_CONTROL  0x1FC // 508
 
-//CAN-CH bus data definitions
-#define SUSP_SOFT 0x50 // 80
-#define SUSP_MID 0x40  // 64
-#define SUSP_FIRM 0x60 // 96
+// CAN-CH bus data definitions
+#define SUSP_SOFT 0x50  // 80
+#define SUSP_MID  0x40  // 64
+#define SUSP_FIRM 0x60  // 96
 
-//DNA Mode definitions
-#define DNA_RACE 0x31               // 49
-#define DNA_DYNAMIC 0x9             // 9
-#define DNA_NEUTRAL 0x1             // 1
-#define DNA_ADVANCED_EFFICENCY 0x11 // 17
+// DNA Mode definitions
+#define DNA_RACE                0x31  // 49
+#define DNA_DYNAMIC             0x9   // 9
+#define DNA_NEUTRAL             0x1   // 1
+#define DNA_ADVANCED_EFFICENCY  0x11  // 17
 
-//should be pin 10, according to the data sheet
+// should be pin 10, according to the data sheet
 #define SPI_CS_CAN 10
 
 MCPCAN CAN(SPI_CS_CAN);
 
 byte len = 0;
-byte buf[8] = {0};
+byte readBuffer[8] = {0};
+/* tcesc_buf: data to be written to the bus
+    idx 0:  ???
+    idx 1:  DNA-Mode
+    idx 2:  ???
+    idx 3:  buttons (LDW)?!
+*/
 byte tcesc_buf[8] = {0};
-byte last_dna_mode = 0x9;
+
+byte last_dna_mode = 0;
+byte left_stalk_count = 0;
+byte tc_disable = 0;
 
 int setupMasksAndFilters()
 {
   // (up to) 2 mask-registers (0 and 1)
-  // mask defines which bits of the filter are to be checked
+  // mask defines which bits of the filter/id are to be checked
   // 0x7ff -> max. of 11-bit address -> check all bits
   int mask0InitSuccess = CAN.init_Mask(MCP_RXM0, 0, 0x7ff);
   int mask1InitSuccess = CAN.init_Mask(MCP_RXM1, 0, 0x7ff);
@@ -87,76 +96,77 @@ void setup()
 
 void handle_tcesc_control()
 {
+  // sanity check, don't want to send random shit to module if buffer corrupt/incorrect
   if (tcesc_buf[1] != DNA_NEUTRAL &&
       tcesc_buf[1] != DNA_DYNAMIC &&
       tcesc_buf[1] != DNA_ADVANCED_EFFICENCY &&
       tcesc_buf[1] != DNA_RACE)
   {
-    Serial.println("RETURN - DO NTH.");
-    Serial.println(tcesc_buf[1]);
     return;
   }
 
-  Serial.println("SEND MESSAGE TO TCESC control!");
-  Serial.println(tcesc_buf[1]);
+  // TCESC disable in race mode
+  if (tc_disable && tcesc_buf[1] != DNA_RACE)
+  {
+    tcesc_buf[1] = DNA_RACE;
+  }
+  // car in race mode wants TC, put TCESC in Dynamic mode
+  else if (!tc_disable && tcesc_buf[1] == DNA_RACE)
+  {
+    tcesc_buf[1] = DNA_DYNAMIC;
+  }
+  //nothing to do if driver wants TCESC on in non-race mode or off in race-mode.  Car can manage itself
+  else
+  {
+    return;
+  }
   CAN.sendMsgBuf(TCESC_CONTROL, 0, 8, tcesc_buf);
-}
-
-void convertBufToStr(byte string)
-{
-  switch (string)
-  {
-  case DNA_NEUTRAL:
-  {
-    Serial.println("DNA_NEUTRAL");
-    break;
-  }
-  case DNA_ADVANCED_EFFICENCY:
-  {
-    Serial.println("DNA_ADVANCED_EFFICENCY");
-    break;
-  }
-  case DNA_DYNAMIC:
-  {
-    Serial.println("DNA_DYNAMIC");
-    break;
-  }
-  case DNA_RACE:
-  {
-    Serial.println("DNA_RACE");
-    break;
-  }
-  }
 }
 
 void loop()
 {
   unsigned long id = 0;
   if (CAN.checkReceive() == CAN_MSGAVAIL)
-  { //consider switch to interrupt mode
-    CAN.readMsgBufID(&id, &len, buf);
-    memcpy(tcesc_buf, buf, 8);
+  {
+    CAN.readMsgBufID(&id, &len, readBuffer);
 
-    Serial.println("Got id from buffer: ");
-    Serial.println(id);
-
-    Serial.println(last_dna_mode);
-    Serial.println(tcesc_buf[1]);
-
-    // check if dna mode changed and if it is a request for TCESC control
-    if (id == TCESC_CONTROL && last_dna_mode != tcesc_buf[1])
+    if (id == TCESC_CONTROL)
     {
-      Serial.println("ID seems to be TCESC_CONTROL");
-      Serial.println("print buffer 1 / DNA mode: ");
-      Serial.println(tcesc_buf[1]);
+      memcpy(tcesc_buf, readBuffer, 8);
 
-      convertBufToStr(tcesc_buf[1]);
-      handle_tcesc_control();
-      Serial.println("last dna mode");
-      Serial.println(last_dna_mode);
+      //driver pressing left stalk button
+      if (tcesc_buf[3] & 0x40)
+      {
+        left_stalk_count++;
+        if (left_stalk_count > 8)
+        {
+          tc_disable ^= 1;      //toggle tc_disable between 0 and 1
+          left_stalk_count = 0; //reset stalk count for next press event
+        }
+      }
+      else
+      {
+        left_stalk_count = 0;
+      }
+
+      /*
+       * let's detect real DNA mode change to/from race for QV cars and change to expected TC/ESC setting when that happens
+       */
+      if (last_dna_mode == DNA_RACE && tcesc_buf[1] != DNA_RACE)
+      {
+        tc_disable = 0;
+      }
+      else if (last_dna_mode != DNA_RACE && tcesc_buf[1] == DNA_RACE)
+      {
+        tc_disable = 1;
+      }
       last_dna_mode = tcesc_buf[1];
-      Serial.println("NEW last dna mode");
-      Serial.println(tcesc_buf[1]);
+    }
+
+    //added extra check to deal with library/filter bug, don't spam the bus
+    if (id == TCESC_CONTROL || id == SUSPENSION_CONTROL)
+    {
+      handle_tcesc_control();
     }
   }
 }

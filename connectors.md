@@ -38,4 +38,5 @@
 | 8                 |                                                        |
 | 9                 | Vin (mind the power switch on the CAN-Bus shield)      |
 ### socket/plug pin numbers
+*(ignore the pin description - picture is just for the pin numbers...)*
 ![DE-9 / DB-9 socket](https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/RS-232_DE-9_Connector_Pinouts.png/800px-RS-232_DE-9_Connector_Pinouts.png)
