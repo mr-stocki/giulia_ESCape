@@ -6,7 +6,7 @@
 |------------|--------------------------|----------------------------|
 | 1          |                          |                            |
 | 2          | SAE J1850 Bus +          |                            |
-| 3          |                          |                            |
+| 3          |                          | CAN IHS High               |
 | 4          | Chassis                  |                            |
 | 5          | Signal Ground            |                            |
 | 6          | CAN High                 |                            |
@@ -14,9 +14,9 @@
 | 8          |                          |                            |
 | 9          |                          |                            |
 | 10         | SAE J1850 Bus -          |                            |
-| 11         |                          |                            |
-| 12         |                          | CAN-CH ?Low/High?          |
-| 13         |                          | CAN-CH ?Low/High?          |
+| 11         |                          | CAN IHS Low                |
+| 12         |                          | ***CAN-CH High***          |
+| 13         |                          | ***CAN-CH Low***           |
 | 14         | CAN Low                  |                            |
 | 15         | ISO9141 L-Line           |                            |
 | 16         | Vehicle Battery Positive |                            |
