@@ -1,4 +1,6 @@
 {
     "board": "arduino:avr:uno",
-    "sketch": "ESCaped\\ESCaped.ino"
+    "sketch": "ESCaped\\ESCaped.ino",
+    "programmer": "AVR ISP",
+    "port": "COM8"
 }
