@@ -2,20 +2,27 @@
 #include <df_candfs.h>
 #include <time.h>
 
-// CAN-CH bus ID definitions
-#define TCESC_CONTROL       0x384 // 900
-#define SUSPENSION_CONTROL  0x1FC // 508
+// CAN-CH bus message id definitions
+#define TCESC_CONTROL 0x384      // 900
+#define SUSPENSION_CONTROL 0x1FC // 508
 
 // CAN-CH bus data definitions
-#define SUSP_SOFT 0x50  // 80
-#define SUSP_MID  0x40  // 64
-#define SUSP_FIRM 0x60  // 96
+// messages with id TCESC_CONTROL, values at idx 6
+#define TC_SUSP_SOFTEN_1_STEP 0x80 // 128
+#define TC_SUSP_NORMAL 0x0         // 0
+
+// messages with id SUSPENSION_CONTROL, values at idx 0
+#define SUSP_NORMAL 0x10    // 16 - default value in A, N and D mode with "soft" pressed
+#define SUSP_MEDIUM 0x0     // 0 - default value iin D mode
+#define SUSP_HARD_RACE 0x60 // 96 - default value when entering race mode
+#define SUSP_MID_RACE 0x40  // 64 - value after pressing the "soft" button
 
 // DNA Mode definitions
-#define DNA_RACE                0x31  // 49
-#define DNA_DYNAMIC             0x9   // 9
-#define DNA_NEUTRAL             0x1   // 1
-#define DNA_ADVANCED_EFFICENCY  0x11  // 17
+// messages with id TCESC_CONTROL, values at idx 1
+#define DNA_RACE 0x31               // 49
+#define DNA_DYNAMIC 0x9             // 9
+#define DNA_NEUTRAL 0x1             // 1
+#define DNA_ADVANCED_EFFICENCY 0x11 // 17
 
 // should be pin 10, according to the data sheet
 #define SPI_CS_CAN 10
@@ -29,6 +36,8 @@ byte readBuffer[8] = {0};
     idx 1:  DNA-Mode
     idx 2:  ???
     idx 3:  buttons (LDW)?!
+    idx ...
+    idx 6:  suspension-button (dna-knob)
 */
 byte tcesc_buf[8] = {0};
 
@@ -123,6 +132,26 @@ void handle_tcesc_control()
   CAN.sendMsgBuf(TCESC_CONTROL, 0, 8, tcesc_buf);
 }
 
+void printReadBuffer(unsigned long messageIdPrefix)
+{
+  switch (messageIdPrefix)
+  {
+  case TCESC_CONTROL:
+    Serial.print("TCESC:\t");
+    break;
+  case SUSPENSION_CONTROL:
+    Serial.print("SUSP:\t");
+    break;
+  }
+
+  for (int i = 0; i < 8; i++)
+  {
+    Serial.print(readBuffer[i]);
+    Serial.print("\t");
+  }
+  Serial.println("");
+}
+
 void loop()
 {
   unsigned long id = 0;
@@ -166,6 +195,7 @@ void loop()
     //added extra check to deal with library/filter bug, don't spam the bus
     if (id == TCESC_CONTROL || id == SUSPENSION_CONTROL)
     {
+      printReadBuffer(id);
       handle_tcesc_control();
     }
   }
