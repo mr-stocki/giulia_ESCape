@@ -12,9 +12,9 @@
 #define TC_SUSP_DEFAULT 0x0         // 0
 
 // messages with id SUSPENSION_CONTROL, values at idx 0
-#define SUSP_NORMAL 0x10    // 16 - default value in A, N and D mode with "soft" pressed
+#define SUSP_NORMAL 0x10    // 16 - default value in A and N mode; D mode with "soft" pressed
 #define SUSP_MEDIUM 0x0     // 0 - default value in D mode
-#define SUSP_HARD_RACE 0x60 // 96 - default value when entering race mode
+#define SUSP_HARD_RACE 0x60 // 96 - default value in Race mode
 #define SUSP_MID_RACE 0x40  // 64 - value after pressing the "soft" button
 
 // DNA Mode definitions
