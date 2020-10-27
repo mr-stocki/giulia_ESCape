@@ -124,7 +124,7 @@ void handle_tcesc_control()
   {
     tcesc_buf[1] = DNA_DYNAMIC;
   }
-  //nothing to do if driver wants TCESC on in non-race mode or off in race-mode.  Car can manage itself
+  // nothing to do if driver wants TCESC on in non-race mode or off in race-mode. Car can manage itself
   else
   {
     return;
@@ -163,14 +163,14 @@ void loop()
     {
       memcpy(tcesc_buf, readBuffer, 8);
 
-      //driver pressing left stalk button
+      // driver pressing left stalk button
       if (tcesc_buf[3] & 0x40)
       {
         left_stalk_count++;
         if (left_stalk_count > 8)
         {
-          tc_disable ^= 1;      //toggle tc_disable between 0 and 1
-          left_stalk_count = 0; //reset stalk count for next press event
+          tc_disable ^= 1;      // toggle tc_disable between 0 and 1
+          left_stalk_count = 0; // reset stalk count for next press event
         }
       }
       else
@@ -192,7 +192,7 @@ void loop()
       last_dna_mode = tcesc_buf[1];
     }
 
-    //added extra check to deal with library/filter bug, don't spam the bus
+    // added extra check to deal with library/filter bug, don't spam the bus
     if (id == TCESC_CONTROL || id == SUSPENSION_CONTROL)
     {
       printReadBuffer(id);
